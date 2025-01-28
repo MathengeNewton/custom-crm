@@ -1,8 +1,8 @@
-// components/ChartsSection.tsx
 import React from "react";
 import { BarChartComponent } from "./BarChartComponent";
 import { LineChartComponent } from "./LineChartComponent";
 import { PieChartComponent } from "./PieChartComponent";
+import { ChartData } from "chart.js";
 
 export const ChartsSection = ({
   clientsData,
@@ -12,12 +12,12 @@ export const ChartsSection = ({
   messagesData,
   campaignsData,
 }: {
-  clientsData: unknown;
-  salesData: unknown;
-  ordersData: unknown;
-  salesRepsData: unknown;
-  messagesData: unknown;
-  campaignsData: unknown;
+  clientsData: ChartData<"bar", (number | [number, number] | null)[], unknown>;
+  salesData: ChartData<"line", (number | { x: number; y: number } | null)[], unknown>; // Updated
+  ordersData: ChartData<"bar", (number | [number, number] | null)[], unknown>;
+  salesRepsData: ChartData<"pie", number[], unknown>;
+  messagesData: ChartData<"line", (number | { x: number; y: number } | null)[], unknown>; // Updated
+  campaignsData: ChartData<"pie", number[], unknown>;
 }) => {
   return (
     <>

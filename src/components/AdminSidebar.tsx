@@ -3,8 +3,10 @@ import React, { useState } from "react";
 import { Sidebar, SidebarBody, SidebarLink } from "@/components/globalSidebarComponents";
 import {
   IconArrowLeft,
-  IconSettings,
+  IconMessageCircleUser,
+  IconMessageUser,
   IconUsersGroup,
+  IconMessages,
   IconUserCog,
   IconUserCheck,
   IconShoppingBag,
@@ -30,7 +32,7 @@ export function GlobalSidebar() {
     },
     {
       label: "Clients",
-      href: "/dashboard/clients",
+      href: "#",
       icon: (
         <IconUsersGroup className="text-neutral-700 dark:text-neutral-200 h-5 w-5 flex-shrink-0" />
       ),
@@ -62,11 +64,23 @@ export function GlobalSidebar() {
       ),
     },
     {
-      label: "Campaigns",
-      href: "/dashboard/campaigns",
+      label: "Messages",
+      href: "#",
       icon: (
-        <IconSettings className="text-neutral-700 dark:text-neutral-200 h-5 w-5 flex-shrink-0" />
+        <IconMessageCircleUser className="text-neutral-700 dark:text-neutral-200 h-5 w-5 flex-shrink-0" />
       ),
+      subItems: [
+        {
+          label: "Message Groups",
+          href: "/dashboard/messages/groups",
+          icon: <IconMessageUser className="text-neutral-700 dark:text-neutral-200 h-5 w-5 flex-shrink-0" />,
+        },
+        {
+          label: "Campaigns",
+          href: "/dashboard/messages/campaigns",
+          icon: <IconMessages className="text-neutral-700 dark:text-neutral-200 h-5 w-5 flex-shrink-0" />,
+        }
+      ]
     },
     {
       label: "Logout",

@@ -4,6 +4,8 @@ import { Input, Select, DatePicker, Table, Modal, Button } from "antd";
 import type { ColumnsType } from "antd/es/table";
 import dayjs, { Dayjs } from "dayjs";
 import isBetween from "dayjs/plugin/isBetween";
+import { EyeOutlined } from "@ant-design/icons"; // Import the eye icon
+import Image from 'next/image';
 
 dayjs.extend(isBetween);
 
@@ -39,7 +41,6 @@ export default function RegistrationRequestPage() {
   const [dateRange, setDateRange] = useState<[Dayjs, Dayjs] | null>(null);
   const [salesRepFilter, setSalesRepFilter] = useState<string | null>(null);
   const [priceGroupFilter, setPriceGroupFilter] = useState<string | null>(null);
-  // const [statusFilter, setStatusFilter] = useState<string | null>(null);
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [selectedRequest, setSelectedRequest] =
     useState<RegistrationRequest | null>(null);
@@ -75,19 +76,12 @@ export default function RegistrationRequestPage() {
     applyFilters(searchText, dateRange, salesRepFilter, value);
   };
 
-  // Handle status filter
-  // const handleStatusFilter = (value: string) => {
-  //   setStatusFilter(value);
-  //   applyFilters(searchText, dateRange, salesRepFilter, priceGroupFilter, value);
-  // };
-
   // Apply all filters
   const applyFilters = (
     search: string,
     dates: [Dayjs, Dayjs] | null,
     salesRep: string | null,
     priceGroup: string | null,
-    // status: string | null
   ) => {
     let filtered = dummyRequests;
 
@@ -116,11 +110,6 @@ export default function RegistrationRequestPage() {
       filtered = filtered.filter((request) => request.priceGroup === priceGroup);
     }
 
-    // Filter by status
-    if (status) {
-      filtered = filtered.filter((request) => request.status === status);
-    }
-
     setFilteredData(filtered);
   };
 
@@ -132,7 +121,6 @@ export default function RegistrationRequestPage() {
 
   // Handle approve/reject
   const handleApprove = () => {
-    // Update the status of the selected request to "Approved"
     const updatedData = filteredData.map((request) =>
       request.key === selectedRequest?.key
         ? { ...request, status: "Approved" }
@@ -143,7 +131,6 @@ export default function RegistrationRequestPage() {
   };
 
   const handleReject = () => {
-    // Update the status of the selected request to "Rejected"
     const updatedData = filteredData.map((request) =>
       request.key === selectedRequest?.key
         ? { ...request, status: "Rejected" }
@@ -199,7 +186,7 @@ export default function RegistrationRequestPage() {
       title: "Action",
       key: "action",
       render: (_, record) => (
-        <Button type="link" onClick={() => handleViewApplication(record)}>
+        <Button type="link" onClick={() => handleViewApplication(record)} icon={<EyeOutlined />}>
           View
         </Button>
       ),
@@ -246,16 +233,6 @@ export default function RegistrationRequestPage() {
           onChange={handlePriceGroupFilter}
           className="w-full md:w-64"
         />
-        {/* <Select
-          placeholder="Filter by Status"
-          options={[
-            { value: "New", label: "New" },
-            { value: "Approved", label: "Approved" },
-            { value: "Rejected", label: "Rejected" },
-          ]}
-          onChange={handleStatusFilter}
-          className="w-full md:w-64"
-        /> */}
       </div>
 
       {/* Table */}
@@ -298,6 +275,18 @@ export default function RegistrationRequestPage() {
               <strong>Business Details:</strong> Registration certificates and
               other documents can be displayed here.
             </p>
+            {/* Sample Registration Certificate */}
+            <div className="mt-4">
+              <strong>Sample Registration Certificate:</strong>
+              
+              <Image
+                src="/images/certificate.jpg" // Replace with the actual path to your sample certificate image
+                alt="Sample Registration Certificate"
+                width={500} // Set appropriate width
+                height={500} // Set appropriate height
+                className="w-full mt-2"
+              />
+            </div>
           </div>
         )}
       </Modal>

@@ -1,10 +1,9 @@
 "use client";
 import React, { useState } from "react";
-import { Input, Select, DatePicker, Table } from "antd";
+import { Input, Select, DatePicker, Table, Button, Form, Modal } from "antd";
 import type { ColumnsType } from "antd/es/table";
 import dayjs, { Dayjs } from "dayjs";
 import isBetween from "dayjs/plugin/isBetween";
-import EditDeleteModal from "@/components/EditDeleteModal"; // Reusable modal
 
 dayjs.extend(isBetween);
 
@@ -33,58 +32,16 @@ interface SalesRep {
   [key: string]: unknown;
 }
 
-const columns: ColumnsType<SalesRep> = [
-  {
-    title: "Name",
-    dataIndex: "name",
-    key: "name",
-  },
-  {
-    title: "Phone Number",
-    dataIndex: "phoneNumber",
-    key: "phoneNumber",
-  },
-  {
-    title: "Location Serving",
-    dataIndex: "locationServing",
-    key: "locationServing",
-    filters: [
-      { text: "Location 1", value: "Location 1" },
-      { text: "Location 2", value: "Location 2" },
-      { text: "Location 3", value: "Location 3" },
-      { text: "Location 4", value: "Location 4" },
-      { text: "Location 5", value: "Location 5" },
-    ],
-    onFilter: (value, record) => record.locationServing === value,
-  },
-  {
-    title: "Clients Onboarded",
-    dataIndex: "clientsOnboarded",
-    key: "clientsOnboarded",
-    sorter: (a, b) => a.clientsOnboarded - b.clientsOnboarded,
-  },
-  {
-    title: "Date Joined",
-    dataIndex: "dateJoined",
-    key: "dateJoined",
-    sorter: (a, b) => dayjs(a.dateJoined).unix() - dayjs(b.dateJoined).unix(),
-  },
-  {
-    title: "Actions",
-    key: "actions",
-    // render: (_, record) => (
-    //   <Button onClick={() => handleEditDelete(record)}>Edit/Delete</Button>
-    // ),
-  },
-];
-
 export default function SalesRepsPage() {
   const [filteredData, setFilteredData] = useState(dummySalesReps);
   const [searchText, setSearchText] = useState("");
   const [dateRange, setDateRange] = useState<[Dayjs, Dayjs] | null>(null);
   const [locationFilter, setLocationFilter] = useState<string | null>(null);
-  const [selectedRecord] = useState<SalesRep | null>(null);
+  const [selectedRecord, setSelectedRecord] = useState<SalesRep | null>(null);
   const [isModalVisible, setIsModalVisible] = useState(false);
+  const [isCreateModalVisible, setIsCreateModalVisible] = useState(false);
+  const [form] = Form.useForm();
+  const [createForm] = Form.useForm();
 
   // Handle search
   const handleSearch = (value: string) => {
@@ -140,25 +97,94 @@ export default function SalesRepsPage() {
     setFilteredData(filtered);
   };
 
-  // Handle edit/delete action
-  // const handleEditDelete = (record: SalesRep) => {
-  //   setSelectedRecord(record);
-  //   setIsModalVisible(true);
-  // };
+  // Handle edit action
+  const handleEdit = (record: SalesRep) => {
+    setSelectedRecord(record);
+    form.setFieldsValue(record); // Set form values to the selected record
+    setIsModalVisible(true);
+  };
 
   // Handle update
-  const handleUpdate = (updatedRecord: SalesRep) => {
-    const updatedData = filteredData.map((rep) =>
-      rep.key === updatedRecord.key ? updatedRecord : rep
-    );
-    setFilteredData(updatedData);
+  const handleUpdate = () => {
+    form.validateFields().then((values) => {
+      const updatedData = filteredData.map((rep) =>
+        rep.key === selectedRecord?.key ? { ...rep, ...values } : rep
+      );
+      setFilteredData(updatedData);
+      setIsModalVisible(false);
+    });
   };
 
-  // Handle delete
-  const handleDelete = (recordId: number) => {
-    const updatedData = filteredData.filter((rep) => rep.key !== recordId);
+  // Handle deactivate
+  const handleDeactivate = () => {
+    const updatedData = filteredData.filter((rep) => rep.key !== selectedRecord?.key);
     setFilteredData(updatedData);
+    setIsModalVisible(false);
   };
+
+  // Handle create action
+  const handleCreate = () => {
+    setIsCreateModalVisible(true);
+  };
+
+  // Handle create submission
+  const handleCreateSubmit = () => {
+    createForm.validateFields().then((values) => {
+      const newRecord = {
+        key: filteredData.length + 1, // Generate a new key
+        ...values,
+        dateJoined: dayjs().format("YYYY-MM-DD"), // Set the current date as the joined date
+      };
+      setFilteredData([...filteredData, newRecord]);
+      setIsCreateModalVisible(false);
+      createForm.resetFields(); // Reset the form fields
+    });
+  };
+
+  const columns: ColumnsType<SalesRep> = [
+    {
+      title: "Name",
+      dataIndex: "name",
+      key: "name",
+    },
+    {
+      title: "Phone Number",
+      dataIndex: "phoneNumber",
+      key: "phoneNumber",
+    },
+    {
+      title: "Location Serving",
+      dataIndex: "locationServing",
+      key: "locationServing",
+      filters: [
+        { text: "Location 1", value: "Location 1" },
+        { text: "Location 2", value: "Location 2" },
+        { text: "Location 3", value: "Location 3" },
+        { text: "Location 4", value: "Location 4" },
+        { text: "Location 5", value: "Location 5" },
+      ],
+      onFilter: (value, record) => record.locationServing === value,
+    },
+    {
+      title: "Clients Onboarded",
+      dataIndex: "clientsOnboarded",
+      key: "clientsOnboarded",
+      sorter: (a, b) => a.clientsOnboarded - b.clientsOnboarded,
+    },
+    {
+      title: "Date Joined",
+      dataIndex: "dateJoined",
+      key: "dateJoined",
+      sorter: (a, b) => dayjs(a.dateJoined).unix() - dayjs(b.dateJoined).unix(),
+    },
+    {
+      title: "Actions",
+      key: "actions",
+      render: (_, record) => (
+        <Button onClick={() => handleEdit(record)}>View</Button>
+      ),
+    },
+  ];
 
   return (
     <div className="p-6 bg-neutral-100 dark:bg-neutral-900 min-h-screen">
@@ -166,30 +192,35 @@ export default function SalesRepsPage() {
         Sales Reps
       </h1>
 
-      {/* Filters */}
-      <div className="flex flex-wrap gap-4 mb-6">
-        <Input
-          placeholder="Search by name"
-          value={searchText}
-          onChange={(e) => handleSearch(e.target.value)}
-          className="w-full md:w-64"
-        />
-        <RangePicker
-          onChange={handleDateRangeChange}
-          className="w-full md:w-64"
-        />
-        <Select
-          placeholder="Filter by Location"
-          options={[
-            { value: "Location 1", label: "Location 1" },
-            { value: "Location 2", label: "Location 2" },
-            { value: "Location 3", label: "Location 3" },
-            { value: "Location 4", label: "Location 4" },
-            { value: "Location 5", label: "Location 5" },
-          ]}
-          onChange={handleLocationFilter}
-          className="w-full md:w-64"
-        />
+      {/* Filters and Create Button */}
+      <div className="flex flex-wrap justify-between gap-4 mb-6">
+        <div className="flex flex-wrap gap-4">
+          <Input
+            placeholder="Search by name"
+            value={searchText}
+            onChange={(e) => handleSearch(e.target.value)}
+            className="w-full md:w-64"
+          />
+          <RangePicker
+            onChange={handleDateRangeChange}
+            className="w-full md:w-64"
+          />
+          <Select
+            placeholder="Filter by Location"
+            options={[
+              { value: "Location 1", label: "Location 1" },
+              { value: "Location 2", label: "Location 2" },
+              { value: "Location 3", label: "Location 3" },
+              { value: "Location 4", label: "Location 4" },
+              { value: "Location 5", label: "Location 5" },
+            ]}
+            onChange={handleLocationFilter}
+            className="w-full md:w-64"
+          />
+        </div>
+        <Button type="primary" onClick={handleCreate}>
+          Create
+        </Button>
       </div>
 
       {/* Table */}
@@ -200,16 +231,77 @@ export default function SalesRepsPage() {
         scroll={{ x: true }}
       />
 
-      {/* Reusable Edit/Delete Modal */}
-      {selectedRecord && (
-        <EditDeleteModal
-          record={selectedRecord}
-          visible={isModalVisible}
-          onClose={() => setIsModalVisible(false)}
-          onUpdate={handleUpdate}
-          onDelete={handleDelete}
-        />
-      )}
+      {/* Modal for Edit/Deactivate */}
+      <Modal
+        title="Edit/Deactivate Sales Rep"
+        visible={isModalVisible}
+        onCancel={() => setIsModalVisible(false)}
+        footer={[
+          <Button key="deactivate" danger onClick={handleDeactivate}>
+            Deactivate
+          </Button>,
+          <Button key="update" type="primary" onClick={handleUpdate}>
+            Update
+          </Button>,
+        ]}
+      >
+        <Form form={form} layout="vertical">
+          <Form.Item name="name" label="Name">
+            <Input />
+          </Form.Item>
+          <Form.Item name="phoneNumber" label="Phone Number">
+            <Input />
+          </Form.Item>
+          <Form.Item name="locationServing" label="Location Serving">
+            <Input />
+          </Form.Item>
+          <Form.Item name="clientsOnboarded" label="Clients Onboarded">
+            <Input type="number" />
+          </Form.Item>
+          <Form.Item name="dateJoined" label="Date Joined">
+            <Input />
+          </Form.Item>
+        </Form>
+      </Modal>
+
+      {/* Modal for Create */}
+      <Modal
+        title="Create Sales Rep"
+        visible={isCreateModalVisible}
+        onCancel={() => setIsCreateModalVisible(false)}
+        footer={[
+          <Button key="cancel" onClick={() => setIsCreateModalVisible(false)}>
+            Cancel
+          </Button>,
+          <Button key="create" type="primary" onClick={handleCreateSubmit}>
+            Create
+          </Button>,
+        ]}
+      >
+        <Form form={createForm} layout="vertical">
+          <Form.Item
+            name="name"
+            label="Name"
+            rules={[{ required: true, message: "Please enter the name" }]}
+          >
+            <Input />
+          </Form.Item>
+          <Form.Item
+            name="phoneNumber"
+            label="Phone Number"
+            rules={[{ required: true, message: "Please enter the phone number" }]}
+          >
+            <Input />
+          </Form.Item>
+          <Form.Item
+            name="locationServing"
+            label="Location Serving"
+            rules={[{ required: true, message: "Please enter the location" }]}
+          >
+            <Input />
+          </Form.Item>
+        </Form>
+      </Modal>
     </div>
   );
 }
